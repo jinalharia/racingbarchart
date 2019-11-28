@@ -1,30 +1,3 @@
-// var data = d3.csvParse("category-brands.csv", d3.autoType);
-
-// var data = [];
-
-// function myFunction() {
-//     return d3.csv("http://localhost:8000/category-brands.csv", draw);
-// };
-
-// function draw(data) {
-//     // "use strict";
-
-//     var parseDate = d3.timeParse("%Y-%m-%d");
-//     data.forEach(function(d) {
-//         console.log(d.date);
-//         console.log(parseDate(d.date));
-//         d.date = parseDate(d.date);
-//         d.name = d.name;
-//         d.category = d.category;
-//         d.value = +d.value;
-//     });
-// };
-
-// var data = myFunction();
-
-// var parseTime = d3.timeParse("%Y-%m-%d");
-// console.log(parseTime("2003-01-10"));
-
 var parseDate = d3.timeParse("%Y-%m-%d");
 d3.csv("https://raw.githubusercontent.com/jinalharia/racingbarchart/master/category-brands.csv")
     .then(data => {
@@ -58,7 +31,7 @@ function render(data) {
     var k = 10;
 
     var names = new Set(data.map(d => d.name));
-
+    
     var datevalues = Array.from(d3.rollup(data, ([d]) => d.value, d => +d.date, d => d.name))
                         .map(([date, data]) => [new Date(date), data])
                         .sort(([a], [b]) => d3.ascending(a, b));
@@ -203,16 +176,17 @@ function render(data) {
             .call(g => g.select("tspan").tween("text", d => textTween((prev.get(d) || d).value, d.value))));
     };
 
-    (async function*() {
-        replay;
+    
+    async function* chart() {
+        // replay;
         const svg = d3.select("#chart").append("svg")
-                    .attr("viewBox", [0, 0, width, height]);
+            .attr("viewBox", [0, 0, width, height]);
 
         const updateBars = bars(svg);
         const updateAxis = axis(svg);
         const updateLabels = labels(svg);
         const updateTicker = ticker(svg);
-
+        console.log("Hello");
         yield svg.node();
 
         for (const keyframe of keyframes) {
@@ -228,10 +202,17 @@ function render(data) {
             updateLabels(keyframe, transition);
             updateTicker(keyframe, transition);
 
-            invalidation.then(() => svg.interrupt());
+            // invalidation.then(() => svg.interrupt());
             await transition.end();
-        }
-    })();
-
+        };
+    };
+    
     console.log(height);
+
+    const c = chart();
+    (async () => {
+        for await (const val of c) {
+          console.log(val); // Prints "Hello"
+        }
+      })();
 };
